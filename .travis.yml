@@ -71,5 +71,6 @@ script:
     fi
   - |
     if [[ "$WP_TRAVISCI" == "codecept" ]] ; then
+      vendor/bin/codecept build
       vendor/bin/codecept run acceptance
     fi
