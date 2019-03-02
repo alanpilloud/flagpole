@@ -26,6 +26,8 @@ matrix:
       env: WP_VERSION=trunk
     - php: 5.6
       env: WP_TRAVISCI=phpcs
+    - php: 7.0
+      env: WP_TRAVISCI=codecept
 
 before_script:
   - export PATH="$HOME/.composer/vendor/bin:$PATH"
@@ -45,6 +47,17 @@ before_script:
       composer global require wp-coding-standards/wpcs
       phpcs --config-set installed_paths $HOME/.composer/vendor/wp-coding-standards/wpcs
     fi
+  - |
+    if [[ "$WP_TRAVISCI" == "codecept" ]] ; then
+      # Start up a web server.
+      php -S 127.0.0.1:8888 -t /path/to/web/root >/dev/null 2>&1 &
+      # Start up the webdriver.
+      phantomjs --webdriver=4444 >/dev/null 2>&1 &
+      # Install Codeception.
+      # Doing this last gives the webdriver and server time to start up.
+      composer install --prefer-source
+    fi
+
 
 script:
   - |
@@ -55,4 +68,8 @@ script:
   - |
     if [[ "$WP_TRAVISCI" == "phpcs" ]] ; then
       phpcs --config-set ignore_warnings_on_exit 1
+    fi
+  - |
+    if [[ "$WP_TRAVISCI" == "codecept" ]] ; then
+      vendor/bin/codecept run acceptance
     fi
